@@ -8,12 +8,13 @@ ARG HAKUNEKO_URL=https://github.com/manga-download/hakuneko/releases/download/v6
 FROM --platform=$BUILDPLATFORM ubuntu:22.04 AS hn
 ARG HAKUNEKO_URL
 RUN \
-    add-pkg --no-cache add curl ca-certificates && \
+    apt-get -y update && \
+    apt-get -y install curl ca-certificates && \
     mkdir -p /defaults && \
     curl -# -L -o /defaults/hakuneko-desktop.deb ${HAKUNEKO_URL}
 
 # Pull base image.
-FROM jlesage/baseimage-gui:ubuntu:22.04
+FROM jlesage/baseimage-gui:ubuntu-22.04-v4
 
 ARG DOCKER_IMAGE_VERSION
 
@@ -22,7 +23,8 @@ WORKDIR /tmp
 
 # Install dependencies.
 RUN \
-    add-pkg \
+    apt-get -y update && \
+    apt-get -y install \
         # Needed by the init script.
         jq \
         # We need a font.
@@ -45,10 +47,10 @@ RUN \
 
 # Add files.
 COPY rootfs/ /
-COPY --from=hn /defaults/hakuneko-desktop.deb /defaults/hakunkeo-desktop.deb
+COPY --from=hn /defaults/hakuneko-desktop.deb /defaults/hakuneko-desktop.deb
 
 RUN \
-    dpkg -yi /defaults-hakuneko-desktop.deb
+    dpkg -i /defaults/hakuneko-desktop.deb
 
 # Set internal environment variables.
 RUN \
